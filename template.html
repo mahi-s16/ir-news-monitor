@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR速報 ({{ date }})</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent: #38bdf8;
+            --border: #334155;
+            --hover: #2d3e54;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .meta {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+        }
+
+        .stock-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stock-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stock-card:hover {
+            background-color: var(--hover);
+            transform: translateY(-2px);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .code-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .code {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            margin-right: 8px;
+        }
+
+        .title {
+            line-height: 1.5;
+            font-size: 1rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-dim);
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📈 IR速報 ({{ date }})</h1>
+            <div class="meta">
+                取得件数: {{ count }} 件 | 更新日時: {{ update_time }}
+            </div>
+        </header>
+
+        <input type="text" id="searchInput" class="search-box" placeholder="銘柄名、コード、表題で検索..." onkeyup="filterStocks()">
+
+        <div class="stock-list" id="stockList">
+            {% for item in items %}
+            <a href="{{ item.url }}" target="_blank" class="stock-card" data-search="{{ item.code }} {{ item.name }} {{ item.title }}">
+                <div class="card-top">
+                    <span class="time">{{ item.time }}</span>
+                </div>
+                <div class="code-name">
+                    <span class="code">{{ item.code }}</span>
+                    <span>{{ item.name }}</span>
+                </div>
+                <div class="title">{{ item.title }}</div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <div id="noResults" class="no-results">
+            該当する開示情報はありません。
+        </div>
+    </div>
+
+    <script>
+        function filterStocks() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const list = document.getElementById('stockList');
+            const cards = list.getElementsByClassName('stock-card');
+            const noResults = document.getElementById('noResults');
+            let visibleCount = 0;
+
+            for (let i = 0; i < cards.length; i++) {
+                const searchText = cards[i].getAttribute('data-search').toLowerCase();
+                if (searchText.includes(filter)) {
+                    cards[i].style.display = "";
+                    visibleCount++;
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+
+            noResults.style.display = visibleCount === 0 ? "block" : "none";
+        }
+    </script>
+</body>
+</html>
