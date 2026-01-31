@@ -2,8 +2,8 @@ name: Update IR Report
 
 on:
   schedule:
-    # 平日 JST 9:00 - 17:00 の間、30分おきに更新 (UTC 0:00 - 8:00)
-    - cron: '0,30 0-8 * * 1-5'
+    # 平日 JST 9:00 - 17:00 の間、15分おきに更新 (UTC 0:00 - 8:00)
+    - cron: '0,15,30,45 0-8 * * 1-5'
     # 毎晩 JST 22:00 に最終更新 (UTC 13:00)
     - cron: '0 13 * * *'
   workflow_dispatch: # 手動実行用
