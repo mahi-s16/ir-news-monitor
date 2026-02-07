@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IR速報 ({{ date }})</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-color: #0f172a;
@@ -69,6 +72,26 @@
             border-color: var(--accent);
         }
 
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .download-btn:hover {
+            background-color: #0284c7;
+        }
+
         .stock-list {
             display: grid;
             gap: 12px;
@@ -128,11 +151,17 @@
         }
 
         @media (max-width: 600px) {
-            body { padding: 10px; }
-            h1 { font-size: 1.5rem; }
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -142,11 +171,24 @@
             </div>
         </header>
 
-        <input type="text" id="searchInput" class="search-box" placeholder="銘柄名、コード、表題で検索..." onkeyup="filterStocks()">
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <input type="text" id="searchInput" class="search-box" placeholder="銘柄名、コード、表題で検索..."
+                onkeyup="filterStocks()">
+            <button onclick="downloadCSV()" class="download-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                CSV保存
+            </button>
+        </div>
 
         <div class="stock-list" id="stockList">
             {% for item in items %}
-            <a href="{{ item.url }}" target="_blank" class="stock-card" data-search="{{ item.code }} {{ item.name }} {{ item.title }}">
+            <a href="{{ item.url }}" target="_blank" class="stock-card"
+                data-search="{{ item.code }} {{ item.name }} {{ item.title }}">
                 <div class="card-top">
                     <span class="time">{{ item.time }}</span>
                 </div>
@@ -185,6 +227,51 @@
 
             noResults.style.display = visibleCount === 0 ? "block" : "none";
         }
+
+        function downloadCSV() {
+            const list = document.getElementById('stockList');
+            const cards = list.getElementsByClassName('stock-card');
+            const data = [];
+
+            // ヘッダー
+            data.push(['時刻', 'コード', '銘柄名', '表題', 'URL'].join(','));
+
+            for (let i = 0; i < cards.length; i++) {
+                if (cards[i].style.display !== 'none') {
+                    const time = cards[i].querySelector('.time').innerText;
+                    const code = cards[i].querySelector('.code').innerText;
+                    const name = cards[i].querySelector('.code-name span:not(.code)').innerText;
+                    const title = cards[i].querySelector('.title').innerText;
+                    const url = cards[i].href;
+
+                    // カンマやクォートのエスケープ
+                    const row = [
+                        time,
+                        code,
+                        `"${name.replace(/"/g, '""')}"`,
+                        `"${title.replace(/"/g, '""')}"`,
+                        url
+                    ];
+                    data.push(row.join(','));
+                }
+            }
+
+            const csvContent = "\ufeff" + data.join('\n'); // BOM付きUTF-8
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", `ir_news_${dateStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
 </body>
+
 </html>
